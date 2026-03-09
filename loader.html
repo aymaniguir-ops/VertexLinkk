@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Vertex Link</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#fff;}
+*{cursor:none!important;}
+
+#loader{
+  position:fixed;inset:0;background:#fff;
+  display:flex;flex-direction:column;
+  justify-content:flex-end;
+  padding:clamp(2rem,5vw,4rem);
+  z-index:100;
+  transition:opacity .9s cubic-bezier(.16,1,.3,1);
+}
+#loader.exit{opacity:0;pointer-events:none;}
+
+/* Numéro géant Pulsor-style */
+.pct-wrap{
+  position:absolute;
+  top:50%; left:clamp(2rem,5vw,4rem);
+  transform:translateY(-50%);
+}
+.pct-num{
+  font-family:'Syne',sans-serif;
+  font-weight:800;
+  font-size:clamp(120px,22vw,260px);
+  line-height:.82;
+  letter-spacing:-.06em;
+  color:#111;
+  font-variant-numeric:tabular-nums;
+  user-select:none;
+  opacity:0;
+  transform:translateY(30px);
+  transition:opacity .6s ease,transform .6s cubic-bezier(.16,1,.3,1);
+}
+.pct-num.on{opacity:1;transform:none;}
+.pct-sym{
+  font-family:'DM Mono',monospace;
+  font-weight:300;
+  font-size:clamp(32px,5vw,64px);
+  color:#111;
+  vertical-align:super;
+  margin-left:.05em;
+}
+
+/* Barre de progression fine en bas */
+.bar-line{
+  width:100%;height:1px;background:rgba(0,0,0,.08);
+  position:relative;margin-bottom:1.4rem;
+  opacity:0;transition:opacity .5s ease .3s;
+}
+.bar-line.on{opacity:1;}
+.bar-fill{
+  position:absolute;top:0;left:0;height:100%;
+  width:0%;background:#111;
+  transition:width .04s linear;
+}
+
+/* Bottom bar */
+.bottom{
+  display:flex;align-items:center;justify-content:space-between;
+  opacity:0;transition:opacity .5s ease .4s;
+}
+.bottom.on{opacity:1;}
+.b-brand{
+  font-family:'Syne',sans-serif;font-weight:800;
+  font-size:clamp(.9rem,1.8vw,1.2rem);letter-spacing:-.02em;color:#111;
+}
+.b-status{
+  font-family:'DM Mono',monospace;font-weight:300;
+  font-size:clamp(.6rem,1.2vw,.78rem);letter-spacing:.12em;
+  text-transform:uppercase;color:rgba(0,0,0,.35);
+  height:1em;overflow:hidden;
+}
+.b-year{
+  font-family:'DM Mono',monospace;font-weight:300;
+  font-size:clamp(.6rem,1.2vw,.78rem);letter-spacing:.1em;
+  color:rgba(0,0,0,.2);
+}
+
+/* Ligne verticale droite — déco Pulsor */
+.v-line{
+  position:absolute;right:clamp(2rem,5vw,4rem);top:0;
+  width:1px;height:0;background:rgba(0,0,0,.07);
+  transition:height 1.8s cubic-bezier(.16,1,.3,1) .1s;
+}
+.v-line.on{height:100%;}
+</style>
+</head>
+<body>
+<div id="loader">
+  <div class="v-line" id="vline"></div>
+
+  <div class="pct-wrap">
+    <div class="pct-num" id="num">0<span class="pct-sym">%</span></div>
+  </div>
+
+  <div class="bar-line" id="barline"><div class="bar-fill" id="barfill"></div></div>
+  <div class="bottom" id="bottom">
+    <span class="b-brand">Vertex Link</span>
+    <span class="b-status" id="status">Chargement...</span>
+    <span class="b-year">© 2025</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  const numEl=document.getElementById('num');
+  const fill=document.getElementById('barfill');
+  const status=document.getElementById('status');
+  const msgs=[{at:0,t:'Chargement...'},{at:25,t:'Assets...'},{at:55,t:'Design...'},{at:80,t:'SEO...'},{at:95,t:'Prêt.'}];
+
+  // Apparition initiale
+  setTimeout(()=>{
+    document.getElementById('num').classList.add('on');
+    document.getElementById('barline').classList.add('on');
+    document.getElementById('bottom').classList.add('on');
+    document.getElementById('vline').classList.add('on');
+  },80);
+
+  let cur=0,start=performance.now(),dur=2800;
+  function ease(t){return t<.5?2*t*t:(4-2*t)*t-1;}
+
+  (function tick(now){
+    const raw=Math.min((now-start)/dur,1);
+    const p=raw<.88?ease(raw/.88)*.97:raw<.96?.97:.97+(raw-.96)/.04*.03;
+    const v=Math.round(p*100);
+    if(v!==cur){
+      cur=v;
+      // Met à jour juste le texte (pas le symbole)
+      numEl.childNodes[0].textContent=v;
+      fill.style.width=v+'%';
+      const m=msgs.filter(m=>v>=m.at).pop();
+      if(m&&status.textContent!==m.t) status.textContent=m.t;
+    }
+    raw<1?requestAnimationFrame(tick):setTimeout(exit,320);
+  })(performance.now());
+
+  function exit(){
+    document.getElementById('loader').classList.add('exit');
+    setTimeout(()=>window.location.href='index.html',900);
+  }
+})();
+</script>
+</body>
+</html>
